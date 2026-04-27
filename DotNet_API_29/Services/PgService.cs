@@ -1,28 +1,50 @@
-﻿using DotNet_API_29.Entities.DTOs;
+﻿using AutoMapper;
+using DotNet_API_29.Entities.DTOs;
+using DotNet_API_29.Entities.Models;
+using DotNet_API_29.Exceptions;
 using DotNet_API_29.Repositories;
 
 namespace DotNet_API_29.Services
 {
-    public class PgService(IPgRepositrory repositrory) : IPgService
+    public class PgService(IPgRepositrory repositrory,IMapper mapper) : IPgService
     {
-        public Task AddPg(CreatePgDto pg)
+        public async Task AddPg(CreatePgDto pg)
         {
-            throw new NotImplementedException();
+            if(string.IsNullOrWhiteSpace(pg.PgName))
+            {
+                throw new ValidationException("Pg name cannot be null or empty.");
+            }
+
+            var pg = await mapper.Map<Pg>(CreatePgDto);
         }
 
-        public Task DeletePg(int id)
+        public async Task DeletePg(int id)
         {
-            throw new NotImplementedException();
+            var pg = await repositrory.GetPgById(id);
+
+            if(pg is null)
+                throw new PgNotFoundException(id);
+
+            repositrory.DeletePg(id);
+            await repositrory.SaveChangesAsync();
         }
 
-        public Task<IEnumerable<GetAllPgDto>> GetAllPg()
+        public async Task<IEnumerable<GetAllPgDto>> GetAllPg()
         {
-            throw new NotImplementedException();
+            var pgs = await repositrory.GetAllPg();
+
+            return mapper.Map<IEnumerable<GetAllPgDto>>(pgs);
         }
 
-        public Task<GetAllPgDto> GetPgById(int id)
+        public async Task<GetByIdPgDto> GetPgById(int id)
         {
-            throw new NotImplementedException();
+            var pg = await repositrory.GetPgById(id);
+
+            if(pg is null)
+            {
+                throw new PgNotFoundException(id);
+            }
+            return mapper.Map<GetByIdPgDto>(pg);
         }
 
         public Task UpdatePg(int id, UpdatePgDto pg)

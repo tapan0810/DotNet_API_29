@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DotNet_API_29.Repositories
 {
-    public class PgRepository (PgDbContext _context): IPgRepositrory
+    public class PgRepository(PgDbContext _context) : IPgRepositrory
     {
         public async Task AddPg(Pg pg)
         {
@@ -30,7 +30,12 @@ namespace DotNet_API_29.Repositories
 
         public void UpdatePg(int id, Pg pg)
         {
-           _context.Pgs.Update(pg);
+            _context.Pgs.Update(pg);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            _context.SaveChangesAsync();
         }
     }
 }

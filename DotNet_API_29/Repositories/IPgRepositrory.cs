@@ -10,5 +10,6 @@ namespace DotNet_API_29.Repositories
         Task AddPg(Pg pg);
         void UpdatePg(int id, Pg pg);
         void DeletePg(int id);
+        Task SaveChangesAsync();
     }
 }
