@@ -6,50 +6,72 @@ using DotNet_API_29.Repositories;
 
 namespace DotNet_API_29.Services
 {
-    public class PgService(IPgRepositrory repositrory,IMapper mapper) : IPgService
+    public class PgService : IPgService
     {
-        public async Task AddPg(CreatePgDto pg)
-        {
-            if(string.IsNullOrWhiteSpace(pg.PgName))
-            {
-                throw new ValidationException("Pg name cannot be null or empty.");
-            }
+        private readonly IPgRepositrory _repository;
+        private readonly IMapper _mapper;
 
-            var pg = await mapper.Map<Pg>(CreatePgDto);
+        public PgService(IPgRepositrory repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
         }
 
+        // ✅ ADD PG
+        public async Task AddPg(CreatePgDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.PgName))
+                throw new ValidationException("PG name cannot be empty.");
+
+            var entity = _mapper.Map<Pg>(dto);
+
+            await _repository.AddPg(entity);
+            await _repository.SaveChangesAsync();
+        }
+
+        // ✅ DELETE PG
         public async Task DeletePg(int id)
         {
-            var pg = await repositrory.GetPgById(id);
+            var pg = await _repository.GetPgById(id);
 
-            if(pg is null)
+            if (pg is null)
                 throw new PgNotFoundException(id);
 
-            repositrory.DeletePg(id);
-            await repositrory.SaveChangesAsync();
+            _repository.DeletePg(id);   // ✅ pass entity
+            await _repository.SaveChangesAsync();
         }
 
+        // ✅ GET ALL
         public async Task<IEnumerable<GetAllPgDto>> GetAllPg()
         {
-            var pgs = await repositrory.GetAllPg();
-
-            return mapper.Map<IEnumerable<GetAllPgDto>>(pgs);
+            var pgs = await _repository.GetAllPg();
+            return _mapper.Map<IEnumerable<GetAllPgDto>>(pgs);
         }
 
+        // ✅ GET BY ID
         public async Task<GetByIdPgDto> GetPgById(int id)
         {
-            var pg = await repositrory.GetPgById(id);
+            var pg = await _repository.GetPgById(id);
 
-            if(pg is null)
-            {
+            if (pg is null)
                 throw new PgNotFoundException(id);
-            }
-            return mapper.Map<GetByIdPgDto>(pg);
+
+            return _mapper.Map<GetByIdPgDto>(pg);
         }
 
-        public Task UpdatePg(int id, UpdatePgDto pg)
+        // ✅ UPDATE PG
+        public async Task UpdatePg(int id, UpdatePgDto dto)
         {
-            throw new NotImplementedException();
+            var existingPg = await _repository.GetPgById(id);
+
+            if (existingPg is null)
+                throw new PgNotFoundException(id);
+
+            // Map new values into existing entity
+            _mapper.Map(dto, existingPg);
+
+            _repository.UpdatePg(id,existingPg);
+            await _repository.SaveChangesAsync();
         }
     }
 }
