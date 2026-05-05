@@ -1,6 +1,9 @@
 using AutoMapper;
 using DotNet_API_29.Data;
+using DotNet_API_29.Repositories;
+using DotNet_API_29.Services;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<PgDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IPgRepositrory, PgRepository>();
+builder.Services.AddScoped<IPgService, PgService>();
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
@@ -21,6 +27,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
